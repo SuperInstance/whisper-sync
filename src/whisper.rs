@@ -24,6 +24,24 @@ impl WhisperType {
             WhisperType::Alert { .. } => "alert",
         }
     }
+
+    /// Default TTL in seconds per whisper type.
+    /// Status: 60s (fleet health, needs frequent updates)
+    /// Discovery: 5min (service endpoints change moderately)
+    /// Help: 30min (questions have moderate lifetime)
+    /// Insight: 4h (theorem insights persist longer)
+    /// Trust: 5min (trust scores change quickly)
+    /// Alert: 60s (alerts need immediate attention)
+    pub fn default_ttl_seconds(&self) -> u64 {
+        match self {
+            WhisperType::Status { .. } => 60,
+            WhisperType::Discovery { .. } => 300,
+            WhisperType::Help { .. } => 1800,
+            WhisperType::Insight { .. } => 14400,
+            WhisperType::Trust { .. } => 300,
+            WhisperType::Alert { .. } => 60,
+        }
+    }
 }
 
 /// A whisper message between fleet agents
@@ -116,5 +134,19 @@ mod tests {
         let tags = w.tags();
         assert!(tags.contains(&"whisper".to_string()));
         assert!(tags.contains(&"type:discovery".to_string()));
+    }
+
+    #[test]
+    fn test_default_ttl_per_type() {
+        // Status and Alert: 60s (high-frequency, ephemeral)
+        assert_eq!(WhisperType::Status { health: 1.0, load: 0.5 }.default_ttl_seconds(), 60);
+        assert_eq!(WhisperType::Alert { severity: "crit".into(), message: "!".into() }.default_ttl_seconds(), 60);
+        // Trust and Discovery: 5min (moderate-frequency changes)
+        assert_eq!(WhisperType::Trust { agent: "a".into(), trust_score: 0.9 }.default_ttl_seconds(), 300);
+        assert_eq!(WhisperType::Discovery { service: "svc".into(), endpoint: "http://x".into() }.default_ttl_seconds(), 300);
+        // Help: 30min (moderate lifetime)
+        assert_eq!(WhisperType::Help { question: "?".into(), tags: vec![] }.default_ttl_seconds(), 1800);
+        // Insight: 4h (theorem insights persist)
+        assert_eq!(WhisperType::Insight { summary: "theorem".into(), confidence: 0.9, source_theorem: None }.default_ttl_seconds(), 14400);
     }
 }

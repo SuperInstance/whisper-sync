@@ -31,8 +31,10 @@ enum Commands {
         whisper_type: String,
         #[arg(long)]
         content: String,
-        #[arg(long, default_value = "1800")]
-        ttl: u64,
+        /// TTL in seconds. Defaults to per-type optimal value:
+        /// Status=60s, Alert=60s, Trust=5min, Discovery=5min, Help=30min, Insight=4h
+        #[arg(long)]
+        ttl: Option<u64>,
     },
     /// Listen for whispers addressed to this agent
     Listen {
@@ -92,7 +94,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Send { from, to, whisper_type, content, ttl } => {
             let transport = PlatoTransport::new();
             let wt = parse_whisper_type(&whisper_type, &content)?;
-            let whisper = Whisper::new(from, to, wt, ttl);
+            let effective_ttl = ttl.unwrap_or_else(|| wt.default_ttl_seconds());
+            let whisper = Whisper::new(from, to, wt, effective_ttl);
 
             tracing::info!("sending {} whisper", whisper_type);
             transport.submit_whisper(&whisper).await?;

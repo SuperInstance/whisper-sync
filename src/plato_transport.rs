@@ -87,7 +87,7 @@ impl PlatoTransport {
             return Err(PlatoError::Server(resp.status().to_string()));
         }
 
-        let tiles: Vec<PlatoTile> = resp.json().await.map_err(PlatoError::Parse)?;
+        let tiles: Vec<PlatoTile> = resp.json().await.map_err(|e| PlatoError::Parse(e.to_string()))?;
         Ok(tiles)
     }
 }
@@ -105,7 +105,7 @@ pub struct PlatoTile {
 pub enum PlatoError {
     Request(reqwest::Error),
     Server(String),
-    Parse(serde_json::Error),
+    Parse(String),
 }
 
 impl std::fmt::Display for PlatoError {
