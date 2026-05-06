@@ -1,5 +1,4 @@
 use whisper_sync::{Whisper, WhisperType, WhisperFilter, DeliveryMode};
-use crate::WhisperFilter;
 
 #[test]
 fn test_delivery_mode_enum() {
