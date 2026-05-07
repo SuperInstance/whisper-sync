@@ -1,5 +1,7 @@
 # whisper-sync
 
+[![CI](https://github.com/SuperInstance/whisper-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/SuperInstance/whisper-sync/actions/workflows/ci.yml)
+
 Bridge Murmurer's ambient whisper protocol to PLATO's room infrastructure.
 
 Fleet agents exchange short, low-priority "whispers" via PLATO rooms instead of file-based bottles.
